@@ -13,14 +13,12 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.ImageId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Url)
+                @Html.DisplayNameFor(model => model.FileName)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.User)
             </th>
+            <th>Image</th>
             <th></th>
         </tr>
     </thead>
@@ -28,13 +26,17 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.ImageId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Url)
+                @Html.DisplayFor(modelItem => item.FileName)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.User.Email)
+            </td>
+            <td>
+                @{
+                    var base64 = Convert.ToBase64String(item.ImageFile);
+                    var imgSrc = String.Format("data:image/gif;base64,{0}", base64);
+                }
+                <img src="@imgSrc" style="width:100px; height:auto;"/> <!-- Adjust width and height as necessary -->
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyFriends2.DAL;
+using MyFriends2.Services;
 
 namespace MyFriends2
 {
@@ -16,6 +17,9 @@ namespace MyFriends2
 
             // Get the connection string from secrets.json via the Configuration API
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+            // For image conversion
+            builder.Services.AddScoped<IImageService, ImageService>();
 
             // Assuming you are using Entity Framework Core, add DbContext with the connection string
             builder.Services.AddDbContext<ApplicationDbContext>(options =>

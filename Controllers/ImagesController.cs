@@ -3,17 +3,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MyFriends2.DAL;
 using MyFriends2.DAL.Models;
+using MyFriends2.Services;
 
 namespace MyFriends2.Controllers
 {
     public class ImagesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IImageService _imageService;
 
-        public ImagesController(ApplicationDbContext context)
+        public ImagesController(ApplicationDbContext context, IImageService imageService)
         {
             _context = context;
+            _imageService = imageService;
         }
+
 
         // GET: Images
         public async Task<IActionResult> Index()
@@ -51,9 +55,10 @@ namespace MyFriends2.Controllers
         // POST: Images/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        /*
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ImageId,Url,UserId")] Image image)
+        public async Task<IActionResult> CreateOld([Bind("Id,ImageFile,FileName,UserId")] Image image)
         {
             if (ModelState.IsValid)
             {
@@ -61,6 +66,29 @@ namespace MyFriends2.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", image.UserId);
+            return View(image);
+        }
+        */
+        // POST: Images/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,FileName,UserId")] Image image, IFormFile imageFile)
+        {
+            if (imageFile != null && _imageService.IsValidImageFile(imageFile))
+            {
+                image.ImageFile = await _imageService.ConvertToByteArray(imageFile);
+                image.FileName = image.FileName ?? imageFile.FileName;
+
+                _context.Add(image);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                ModelState.AddModelError("ImageFile", "An image file is required and must be a valid image format.");
+            }
+
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", image.UserId);
             return View(image);
         }
@@ -87,7 +115,7 @@ namespace MyFriends2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ImageId,Url,UserId")] Image image)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,ImageFile,FileName,UserId")] Image image)
         {
             if (id != image.Id)
             {
