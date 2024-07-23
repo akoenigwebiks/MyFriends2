@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MyFriends2.DAL;
 using MyFriends2.DAL.Models;
 using MyFriends2.Services;
+using MyFriends2.ViewModels;
 
 namespace MyFriends2.Controllers
 {
@@ -22,8 +23,15 @@ namespace MyFriends2.Controllers
         // GET: Images
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Images.Include(i => i.User);
-            return View(await applicationDbContext.ToListAsync());
+            var images = await _context.Images.Include(i => i.User).Select(img => new ImageViewModel
+            {
+                Id = img.Id,
+                FileName = img.FileName,
+                ImageBase64 = img.ImageFile != null ? Convert.ToBase64String(img.ImageFile) : null,
+                UserEmail = img.User.Email
+            }).ToListAsync();
+
+            return View(images);
         }
 
         // GET: Images/Details/5
